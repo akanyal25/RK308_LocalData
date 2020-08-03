@@ -96,7 +96,7 @@ def openfilename():
 
 def displaypicmsg():
     shutil.copy(y,'faceimages')
-    
+
     shutil.copy(y,'temp_img')
     #dbinsert----------------------------------------------------------
     sname=ename.get()
@@ -487,10 +487,7 @@ hel = tkFont.Font(family='CORNERSTONE', size=10, weight=tkFont.BOLD)
 comi= tkFont.Font(family='Comic Sans MS', size=10, weight=tkFont.BOLD)
 
 
-#view images
-vi=Button(root,text="View Images",font=hel)
-vi.config(width="27",height="2",bg="#00C853",activebackground="#00BCD4")
-vi.place(x = 40,y = 90)
+
 
 
 
@@ -506,10 +503,7 @@ x2.config(width="27",height="2",bg="#F44336",activebackground="#18FFFF")
 x2.place(x = 40,y = 270)
 
 
-#criminal database
-cd=Button(root,text="Criminal Database",font=hel)
-cd.config(width="27",height="2",bg="#00C853",activebackground="#18FFFF")
-cd.place(x = 40,y = 355)
+
 
 
 #onscreen face recog(ayush+shambu)
