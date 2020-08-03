@@ -12,6 +12,7 @@ import cv2
 import numpy as np
 import face_recognition
 import os
+import glob
 from datetime import datetime
 import shutil
 from PIL import ImageGrab
@@ -22,6 +23,13 @@ import time
 import winsound
 from numba import *
 
+files = glob.glob('faceimages/*')
+for f in files:
+    os.remove(f)
+
+files = glob.glob('scrapped_img/*')
+for f in files:
+    os.remove(f)
 
 #window design and geometry---------------------------------------------------------------------
 root = Tk()
