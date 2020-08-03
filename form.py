@@ -6,6 +6,8 @@ from PIL import ImageTk, Image
 from tkinter import filedialog
 from tkinter import font as tkFont
 from tkinter import messagebox
+import mysql.connector
+from mysql.connector import Error
 
 
 import cv2
@@ -23,13 +25,21 @@ import time
 import winsound
 from numba import *
 
-files = glob.glob('faceimages/*')
+
+#Cleaner----------------------------------------------------------------------------------------
+files = glob.glob('temp_img/*')
 for f in files:
     os.remove(f)
 
 files = glob.glob('scrapped_img/*')
 for f in files:
     os.remove(f)
+
+#connecting to database-------------------------------------------------------------------------
+connection = mysql.connector.connect(host='localhost',database='criminal',user='root',password='1234')
+cursor = connection.cursor()
+
+
 
 #window design and geometry---------------------------------------------------------------------
 root = Tk()
@@ -86,9 +96,31 @@ def openfilename():
 
 def displaypicmsg():
     shutil.copy(y,'faceimages')
+    
+    shutil.copy(y,'temp_img')
+    #dbinsert----------------------------------------------------------
+    sname=ename.get()
+    slocation=eloc.get()
+    
+    path = 'temp_img'
+    name = os.listdir(path)
+
+    img_path='temp_img/'+name[0]
+    with open(img_path,'rb') as f:
+         data=f.read()
+
+    print(sname)
+    print(slocation)
+    print(len(data))
+    sqlquery='INSERT INTO info(name,location,image) VALUES(%s,%s,%s)'
+    cursor.execute(sqlquery,(sname,slocation,data))
+    connection.commit()
+    cursor.close()
+    connection.close() 
+    #dbinsert end-------------------------------------------------------
 
     messagebox.showinfo("Sucess","Picture Uploaded Successfully!!!")     
-       
+    
 #------------------------------------------------------------------------    
 
 #function to find encodings----------------------------------------------
