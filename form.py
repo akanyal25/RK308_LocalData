@@ -247,9 +247,9 @@ def facescriptreg():
 
     nquery='python auto_script.py'+' '+pname+' '+plocation 
     Popen(nquery)
-    time.sleep(2)
+    time.sleep(3)
 
-    time.sleep(1)
+    
     while True:
 
       
@@ -262,7 +262,8 @@ def facescriptreg():
         
         if process_this_frame:
             
-            face_locations = face_recognition.face_locations(rgb_small_frame)
+            face_locations = face_recognition.face_locations(rgb_small_frame,number_of_times_to_upsample=2)
+            # model='cnn'
             face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
 
             face_names = []
@@ -290,6 +291,24 @@ def facescriptreg():
 
             
             cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
+           
+
+            face_scrape = []
+
+            for pers in face_names:
+                if not pers=="Unknown":
+                    face_scrape.append(pers)
+
+
+
+            for person_name in face_scrape:
+                     
+                try:
+                     roi_color = frame[top:bottom, left:right] 
+                     print("[INFO] Object found. Saving locally.") 
+                     cv2.imwrite('scrapped_img/'+person_name+str(right) + str(bottom) + '_faces.jpg', roi_color)
+                except Exception:
+                     print("No face in this image")
 
            
             cv2.rectangle(frame, (left, bottom - 35), (right, bottom), (0, 0, 255), cv2.FILLED)

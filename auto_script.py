@@ -40,16 +40,12 @@ def Automate(name, loc):
      matched_elements = browser.get(url);
 
      time.sleep(3);
-     pyautogui.keyDown('ctrl');
-     pyautogui.press('+');
-     pyautogui.press('+');
-     pyautogui.press('+');
-     pyautogui.keyUp('ctrl');
+     
 
      pyautogui.moveTo(250, 250);
      for k in range(50):
-         pyautogui.scroll(-10);
-         time.sleep(.10);
+         pyautogui.scroll(-20);
+         time.sleep(.80);
      time.sleep(3);
      browser.close();
 
