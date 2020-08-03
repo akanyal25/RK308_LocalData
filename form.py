@@ -19,13 +19,15 @@ from PIL import ImageGrab
 from subprocess import *
 import subprocess
 import time
-
+import winsound
+from numba import *
 
 
 #window design and geometry---------------------------------------------------------------------
 root = Tk()
 root.title('FACE RECOGNITION')
-root.geometry('800x450')
+root.geometry('950x500')
+root.iconbitmap('adityalogo.ico')
 
 
 
@@ -35,6 +37,16 @@ bottomframe = Frame(root)
 bottomframe.pack( side = BOTTOM )
 #-----------------------------------------------------------------------------------------------
 
+
+#beep sound----------------------------------------------
+def bbp():    
+    frequency = 2000  # Set Frequency To 2500 Hertz
+    duration = 500  # Set Duration To 1000 ms == 1 second
+    winsound.Beep(frequency, duration)
+
+
+
+#-------------------------------------------------------
 
 
 #dummy fuction-----------------------------------------------------------
@@ -48,10 +60,10 @@ def donothing():
 def open_img(): 
     x = openfilename() 
     img = Image.open(x)
-    img = img.resize((250, 250), Image.ANTIALIAS) 
+    img = img.resize((200, 200), Image.ANTIALIAS) 
     img = ImageTk.PhotoImage(img) 
     panel = Label(root, image = img) 
-    panel.place(x=390, y=90)   
+    panel.place(x=373, y=131)   
     panel.image = img 
 
 def openfilename(): 
@@ -66,11 +78,13 @@ def openfilename():
 
 def displaypicmsg():
     shutil.copy(y,'faceimages')
+
     messagebox.showinfo("Sucess","Picture Uploaded Successfully!!!")     
        
 #------------------------------------------------------------------------    
 
 #function to find encodings----------------------------------------------
+@jit(parallel=True)
 def findEncodings(images):
     encodeList = []
     for img in images:
@@ -81,11 +95,12 @@ def findEncodings(images):
 #--------------------------------------------------------------------------
 
 
-#gace recognition function-------------------------------------------------
+#Face recognition function-------------------------------------------------
+
 def facereg():
 
 
-    import time
+    
     progress['value']=20
     root.update_idletasks()
     time.sleep(7)
@@ -138,7 +153,8 @@ def facereg():
         # Only process every other frame of video to save time
         if process_this_frame:
             # Find all the faces and face encodings in the current frame of video
-            face_locations = face_recognition.face_locations(rgb_small_frame)
+            face_locations = face_recognition.face_locations(rgb_small_frame,number_of_times_to_upsample=2)
+            # model='cnn'
             face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
 
             face_names = []
@@ -154,6 +170,7 @@ def facereg():
                 best_match_index = np.argmin(face_distances)
                 if matches[best_match_index]:
                     name = classNames[best_match_index]
+                    bbp()
 
                 face_names.append(name)
 
@@ -170,6 +187,24 @@ def facereg():
 
             # Draw a box around the face
             cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
+
+            face_scrape = []
+
+            for pers in face_names:
+                if not pers=="Unknown":
+                    face_scrape.append(pers)
+
+
+
+            for person_name in face_scrape:
+                     
+                try:
+                     roi_color = frame[top:bottom, left:right] 
+                     print("[INFO] Object found. Saving locally.") 
+                     cv2.imwrite('scrapped_img/'+person_name+str(right) + str(bottom) + '_faces.jpg', roi_color)
+
+                except Exception:
+                     print("No face in this image")
 
             # Draw a label with a name below the face
             cv2.rectangle(frame, (left, bottom - 35), (right, bottom), (0, 0, 255), cv2.FILLED)
@@ -197,7 +232,7 @@ def facereg():
 def facescriptreg():
 
 
-    import time
+    
       
     progress['value']=20
     root.update_idletasks()
@@ -247,9 +282,9 @@ def facescriptreg():
 
     nquery='python auto_script.py'+' '+pname+' '+plocation 
     Popen(nquery)
-    time.sleep(3)
+    time.sleep(2)
 
-    
+    time.sleep(1)
     while True:
 
       
@@ -257,7 +292,8 @@ def facescriptreg():
         img_np = np.array(img)
 
         frame = cv2.cvtColor(img_np,cv2.COLOR_BGR2RGB)
-        small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
+        cropped = frame[10:1920, 4:1000]
+        small_frame = cv2.resize(cropped, (0, 0), fx=0.25, fy=0.25)
         rgb_small_frame = small_frame[:, :, ::-1]
         
         if process_this_frame:
@@ -277,6 +313,7 @@ def facescriptreg():
                 best_match_index = np.argmin(face_distances)
                 if matches[best_match_index]:
                     name = classNames[best_match_index]
+                    bbp()
 
                 face_names.append(name)
 
@@ -291,7 +328,6 @@ def facescriptreg():
 
             
             cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
-           
 
             face_scrape = []
 
@@ -307,6 +343,7 @@ def facescriptreg():
                      roi_color = frame[top:bottom, left:right] 
                      print("[INFO] Object found. Saving locally.") 
                      cv2.imwrite('scrapped_img/'+person_name+str(right) + str(bottom) + '_faces.jpg', roi_color)
+
                 except Exception:
                      print("No face in this image")
 
@@ -325,7 +362,6 @@ def facescriptreg():
     
     video_capture.release()
     cv2.destroyAllWindows()
-
 #================================================--------========================================
 
 
@@ -356,7 +392,7 @@ progress.pack(side = BOTTOM)
 #background------------------------------------------
 canvas = Canvas(width=350, height=200, bg='blue')
 canvas.pack(expand=YES, fill=BOTH)
-image = ImageTk.PhotoImage(file="faceback1.jpg")
+image = ImageTk.PhotoImage(file="finale1.jpg")
 canvas.create_image(0, 0, image=image, anchor=NW)
 #----------------------------------------------------
 
@@ -407,54 +443,49 @@ root.config(menu=menubar)
 
 #buttons-----------------------------------------------------------------------------------
 
-
 hel = tkFont.Font(family='CORNERSTONE', size=10, weight=tkFont.BOLD)
 comi= tkFont.Font(family='Comic Sans MS', size=10, weight=tkFont.BOLD)
 
 
-""" 
-b=Button(root)
-photo=PhotoImage(file="red11.png")
-b.config(image=photo,text="enter",width="100",height="40")
-b.place(relx = 0.1, rely = 0.5)
-b.pack()
-"""
+#view images
+vi=Button(root,text="View Images",font=hel)
+vi.config(width="27",height="2",bg="#00C853",activebackground="#00BCD4")
+vi.place(x = 40,y = 90)
+
 
 
 #select picture button
 x1=Button(root,text="Select an image",command = lambda : open_img(),font=hel)
-x1.config(width="27",height="2",bg="#E74C3C ",activebackground="#EC7063")
-x1.place(x = 40,y = 60)
+x1.config(width="27",height="2",bg="#00C853 ",activebackground="#18FFFF")
+x1.place(x = 40,y = 180)
 
-
-""" 
-#shambus script button
-scr=Button(root,text="Find on Social Media",font=hel)
-scr.config(width="27",height="2",bg="#E74C3C ",activebackground="#EC7063")
-scr.place(x = 40,y = 140)
-
- """
 
 #real time face recog
 x2=Button(root,text="Real time Face Recognition",font=hel,command=facereg)
-x2.config(width="27",height="2",bg="#2ECC71",activebackground="#1D8348")
-x2.place(x = 40,y = 130)
+x2.config(width="27",height="2",bg="#F44336",activebackground="#18FFFF")
+x2.place(x = 40,y = 270)
+
+
+#criminal database
+cd=Button(root,text="Criminal Database",font=hel)
+cd.config(width="27",height="2",bg="#00C853",activebackground="#18FFFF")
+cd.place(x = 40,y = 355)
 
 
 #onscreen face recog(ayush+shambu)
 x3=Button(root,text="On Screen Face Recognition",font=hel,command=facescriptreg)
-x3.config(width="27",height="2",bg="#2ECC71",activebackground="#1D8348")
-x3.place(x = 40, y = 320)
+x3.config(width="27",height="2",bg="#F44336",activebackground="#18FFFF")
+x3.place(x = 683, y = 270)
 
 
 #display message button and save image
-b1=Button(root,font=hel,text="CONFIRM",width="10",height="1",bg="#2980B9",activebackground="#F9E79F",command=displaypicmsg)
-b1.place(x=460,y=350)
+b1=Button(root,font=hel,text="SAVE",width="10",height="2",bg="#26C6DA",activebackground="#18FFFF",command=displaypicmsg)
+b1.place(x=430,y=380)
 
 
 #exit button
-btn1=Button(root,font=hel,text="EXIT",width="13",height="2",bg="#F4D03F",activebackground="#F9E79F",command=root.quit)
-btn1.place(x = 680, y = 320) 
+btn1=Button(root,font=hel,text="EXIT",width="27",height="2",bg="#F4D03F",activebackground="#18FFFF",command=root.quit)
+btn1.place(x = 683, y = 355) 
 
 
 #------------------------------------------------------------------------------------------------------------------------------------
@@ -464,23 +495,16 @@ btn1.place(x = 680, y = 320)
 
 #textbox--------------------------------------------------------------------
 
-
-
 ename=Entry(root,width=30)
-ename.place(x = 40, y = 220)
-ename.insert(0,"Enter the name")
+ename.place(height=25,x = 682, y = 140)
+#ename.insert(0,"Enter the name")
 
 
 eloc=Entry(root,width=30)
-eloc.place(x = 40, y = 280)
-eloc.insert(0,"Enter the location")
-
-
-
+eloc.place(height=25,x = 682, y = 215)
+#eloc.insert(0,"Enter the location")
 
 #-----------------------------------------------------------------------------
-
-
 
 
 #////////////////////////////////////////////////////////////////////////////////////
